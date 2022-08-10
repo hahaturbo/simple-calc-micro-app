@@ -1,0 +1,39 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": ["eslint:recommended", "plugin:react/recommended", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true,
+      "impliedStrict": true // 使用严格模式
+    },
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["react", "@typescript-eslint"],
+  "rules": {
+    "@typescript-eslint/no-empty-interface": ["warn"],
+    "@typescript-eslint/no-empty-function": ["warn"],
+    "react/jsx-uses-react": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": 0,
+    "no-var": "error",
+    "prefer-const": "error",
+    "eqeqeq": "error",
+    "semi": ["error", "always"],
+    "default-case": "error",
+    "spaced-comment": "error",
+    "prefer-template": "warn", // 推荐使用模板字面量
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-use-before-define": ["warn"],
+    "space-before-function-paren": 0,
+    "react/display-name": "off",
+    "no-self-assign": 0,
+    "no-undef": 0,
+    "camelcase": 0,
+    "no-unused-vars": 0
+  }
+}
