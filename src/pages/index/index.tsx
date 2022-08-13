@@ -6,6 +6,14 @@ import { useState } from 'react';
 import { useDidShow } from '@tarojs/taro';
 import Taro from '@tarojs/taro';
 
+import { create, all } from 'mathjs';
+
+// create a mathjs instance with configuration
+const math = create(all, {
+  precision: 16,
+  number: 'BigNumber'
+});
+
 interface IndexProps {}
 
 interface SourceType {
@@ -16,10 +24,10 @@ interface SourceType {
 }
 
 interface ResultType {
-  total: number;
-  totalLess: number;
-  realTotal: number;
-  lessUnit: number;
+  total: string;
+  totalLess: string;
+  realTotal: string;
+  lessUnit: string;
 }
 
 const getStorageSource = (): undefined | SourceType => {
@@ -38,11 +46,26 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
   if (!dataSource) return;
   const result: ResultType = {} as ResultType;
   if (dataSource?.count && dataSource?.unitPrice) {
-    result.total = Number(dataSource?.count) * Number(dataSource?.unitPrice);
+    result.total = math.format(
+      math.multiply(math.bignumber(Number(dataSource.count)), math.bignumber(Number(dataSource.unitPrice)))
+    );
     if (dataSource?.needPrice && dataSource?.lessPrice && result.total) {
-      result.totalLess = Math.floor(result.total / Number(dataSource?.needPrice)) * Number(dataSource?.lessPrice);
-      result.realTotal = result.total - result.totalLess;
-      result.lessUnit = result.realTotal / Number(dataSource?.count);
+      result.totalLess = math.format(
+        math.multiply(
+          math.floor(Number(math.divide(math.bignumber(result.total), math.bignumber(Number(dataSource.needPrice))))),
+          math.bignumber(Number(dataSource.lessPrice))
+        )
+      );
+
+      result.realTotal = math.format(
+        math.chain(math.bignumber(result.total)).subtract(math.bignumber(result.totalLess)).done()
+      );
+      result.lessUnit = math.format(
+        math
+          .chain(math.bignumber(result.realTotal))
+          .divide(math.bignumber(Number(dataSource.count)))
+          .done()
+      );
     }
   }
   return result;
@@ -53,12 +76,12 @@ const Index: React.FC<IndexProps> = () => {
 
   const [result, setResult] = useState<ResultType | undefined>(calcResult(getStorageSource()));
 
-  // 对应 onShow
-  useDidShow(() => {
-    console.info('ready');
-    const currentDeviceInfo = Taro.getSystemInfoSync();
-    console.info('currentDeviceInfo', currentDeviceInfo.theme);
-  });
+  // // 对应 onShow
+  // useDidShow(() => {
+  //   console.info('ready');
+  //   const currentDeviceInfo = Taro.getSystemInfoSync();
+  //   console.info('currentDeviceInfo', currentDeviceInfo.theme);
+  // });
   useEffect(() => {
     Taro.setStorageSync('source', JSON.stringify(dataSource));
     setResult(calcResult(dataSource));

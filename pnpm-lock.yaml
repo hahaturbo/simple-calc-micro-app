@@ -35,6 +35,7 @@ specifiers:
   husky: ^8.0.1
   lint-staged: ^13.0.3
   lodash: 4.17.15
+  mathjs: ^11.0.1
   prettier: ^2.7.1
   react: '17'
   react-dom: '17'
@@ -63,6 +64,7 @@ dependencies:
   '@tarojs/taro-h5': 3.5.2_@types+react@17.0.48
   '@types/react': 17.0.48
   lodash: r2.cnpmjs.org/lodash/4.17.15
+  mathjs: 11.0.1
   react: r2.cnpmjs.org/react/17.0.2
   react-dom: r2.cnpmjs.org/react-dom/17.0.2_react@17.0.2
   taro-ui: 3.1.0-beta.3_87703464ea5beb192adacb18c52bafa6
@@ -2775,6 +2777,10 @@ packages:
     engines: {node: ^12.20.0 || >=14}
     dev: true
 
+  /complex.js/2.1.1:
+    resolution: {integrity: sha512-8njCHOTtFFLtegk6zQo0kkVX1rngygb/KQI6z1qZxlFI3scluC+LVTCFbrkWjBv4vvLlbQ9t88IPMC6k95VTTg==}
+    dev: false
+
   /compression/1.7.4:
     resolution: {integrity: sha512-jaSIDzP9pZVS4ZfQ+TzvtiWhdpFhE2RDHz8QJkpX9SIpLq88VueF5jJw6t+6CUQcAoA6t+x89MLrWAqpfDE8iQ==}
     engines: {node: '>= 0.8.0'}
@@ -3528,6 +3534,10 @@ packages:
         optional: true
     dev: true
 
+  /fraction.js/4.2.0:
+    resolution: {integrity: sha512-MhLuK+2gUcnZe8ZHlaaINnQLl0xRIGRfcGk2yl8xoQAfHrSsL3rYu6FCmBdkdbhc9EPlwyGHewaRsvwRMJtAlA==}
+    dev: false
+
   /fs-extra/10.1.0:
     resolution: {integrity: sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ==}
     engines: {node: '>=12'}
@@ -3813,6 +3823,22 @@ packages:
     resolution: {integrity: sha512-3R/1M+yS3j5ou80Me59j7F9IMs4PXs3VqRrm0TU3AbKPxlmpoY1TNscJV/oGJXo8qCatFGTfDbY6W6ipGOYXfg==}
     engines: {node: '>=6.11.5'}
     dev: true
+
+  /mathjs/11.0.1:
+    resolution: {integrity: sha512-Kgm+GcTxwD68zupr7BPK0yrlWpTh2q8sMH6VcBcQe5+JCBqcwOrBxBF11WPah7hVv0NCLDnJnFTiXtik1Phasg==}
+    engines: {node: '>= 14'}
+    hasBin: true
+    dependencies:
+      '@babel/runtime': 7.18.9
+      complex.js: 2.1.1
+      decimal.js: r2.cnpmjs.org/decimal.js/10.3.1
+      escape-latex: r2.cnpmjs.org/escape-latex/1.2.0
+      fraction.js: 4.2.0
+      javascript-natural-sort: r2.cnpmjs.org/javascript-natural-sort/0.7.1
+      seedrandom: r2.cnpmjs.org/seedrandom/3.0.5
+      tiny-emitter: r2.cnpmjs.org/tiny-emitter/2.1.0
+      typed-function: 3.0.0
+    dev: false
 
   /md5/2.3.0:
     resolution: {integrity: sha512-T1GITYmFaKuO91vxyoQMFETst+O71VUPEU3ze5GNzDm0OWdP8v1ziTaAEPUr/3kLsY3Sftgz242A1SetQiDL7g==}
@@ -4787,6 +4813,11 @@ packages:
   /tslib/2.4.0:
     resolution: {integrity: sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==}
     dev: true
+
+  /typed-function/3.0.0:
+    resolution: {integrity: sha512-mKJKkt2xYxJUuMD7jyfgUxfn5KCsCxkEKBVjep5yYellJJ5aEDO2QUAmIGdvcZmfQnIrplkzELIaG+5b1475qg==}
+    engines: {node: '>= 14'}
+    dev: false
 
   /typescript/4.7.4:
     resolution: {integrity: sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==}
@@ -8000,6 +8031,12 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  r2.cnpmjs.org/decimal.js/10.3.1:
+    resolution: {integrity: sha512-V0pfhfr8suzyPGOx3nmq4aHqabehUZn6Ch9kyFpV79TGDTWFmHqUqXdabR7QHqxzrYolF4+tVmJhUG4OURg5dQ==, registry: https://r.cnpmjs.org/, tarball: https://r2.cnpmjs.org/decimal.js/-/decimal.js-10.3.1.tgz}
+    name: decimal.js
+    version: 10.3.1
+    dev: false
+
   r2.cnpmjs.org/decode-uri-component/0.2.0:
     resolution: {integrity: sha512-hjf+xovcEn31w/EUYdTXQh/8smFL/dzYjohQGEIgjyNavaJfBY2p5F527Bo1VPATxv0VYTUC2bOcXvqFwk78Og==, registry: https://r.cnpmjs.org/, tarball: https://r2.cnpmjs.org/decode-uri-component/-/decode-uri-component-0.2.0.tgz}
     name: decode-uri-component
@@ -8621,6 +8658,12 @@ packages:
     name: escape-html
     version: 1.0.3
     dev: true
+
+  r2.cnpmjs.org/escape-latex/1.2.0:
+    resolution: {integrity: sha512-nV5aVWW1K0wEiUIEdZ4erkGGH8mDxGyxSeqPzRNtWP7ataw+/olFObw7hujFWlVjNsaDFw5VZ5NzVSIqRgfTiw==, registry: https://r.cnpmjs.org/, tarball: https://r2.cnpmjs.org/escape-latex/-/escape-latex-1.2.0.tgz}
+    name: escape-latex
+    version: 1.2.0
+    dev: false
 
   r2.cnpmjs.org/escape-string-regexp/1.0.5:
     resolution: {integrity: sha512-vbRorB5FUQWvla16U8R/qgaFIya2qGzwDrNmCZuYKrbdSUMG6I1ZCGQRefkRVhuOkIGVne7BQ35DSfo1qvJqFg==, registry: https://r.cnpmjs.org/, tarball: https://r2.cnpmjs.org/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz}
@@ -11198,6 +11241,12 @@ packages:
       has-to-string-tag-x: r2.cnpmjs.org/has-to-string-tag-x/1.4.1
       is-object: r2.cnpmjs.org/is-object/1.0.2
     dev: true
+
+  r2.cnpmjs.org/javascript-natural-sort/0.7.1:
+    resolution: {integrity: sha512-nO6jcEfZWQXDhOiBtG2KvKyEptz7RVbpGP4vTD2hLBdmNQSsCiicO2Ioinv6UI4y9ukqnBpy+XZ9H6uLNgJTlw==, registry: https://r.cnpmjs.org/, tarball: https://r2.cnpmjs.org/javascript-natural-sort/-/javascript-natural-sort-0.7.1.tgz}
+    name: javascript-natural-sort
+    version: 0.7.1
+    dev: false
 
   r2.cnpmjs.org/javascript-stringify/2.1.0:
     resolution: {integrity: sha512-JVAfqNPTvNq3sB/VHQJAFxN/sPgKnsKrCwyRt15zwNCdrMMJDdcEOdubuy+DuJYYdm0ox1J4uzEuYKkN+9yhVg==, registry: https://r.cnpmjs.org/, tarball: https://r2.cnpmjs.org/javascript-stringify/-/javascript-stringify-2.1.0.tgz}
@@ -14640,6 +14689,12 @@ packages:
       tslib: r2.cnpmjs.org/tslib/1.14.1
     dev: true
 
+  r2.cnpmjs.org/seedrandom/3.0.5:
+    resolution: {integrity: sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==, registry: https://r.cnpmjs.org/, tarball: https://r2.cnpmjs.org/seedrandom/-/seedrandom-3.0.5.tgz}
+    name: seedrandom
+    version: 3.0.5
+    dev: false
+
   r2.cnpmjs.org/seek-bzip/1.0.6:
     resolution: {integrity: sha512-e1QtP3YL5tWww8uKaOCQ18UxIT2laNBXHjV/S2WYCiK4udiv8lkG89KRIoCjUagnAmCBurjF4zEVX2ByBbnCjQ==, registry: https://r.cnpmjs.org/, tarball: https://r2.cnpmjs.org/seek-bzip/-/seek-bzip-1.0.6.tgz}
     name: seek-bzip
@@ -15759,6 +15814,12 @@ packages:
     version: 4.0.1
     engines: {node: '>=0.10.0'}
     dev: true
+
+  r2.cnpmjs.org/tiny-emitter/2.1.0:
+    resolution: {integrity: sha512-NB6Dk1A9xgQPMoGqC5CVXn123gWyte215ONT5Pp5a0yt4nlEoO1ZWeCwpncaekPHXO60i47ihFnZPiRPjRMq4Q==, registry: https://r.cnpmjs.org/, tarball: https://r2.cnpmjs.org/tiny-emitter/-/tiny-emitter-2.1.0.tgz}
+    name: tiny-emitter
+    version: 2.1.0
+    dev: false
 
   r2.cnpmjs.org/tmp/0.0.33:
     resolution: {integrity: sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==, registry: https://r.cnpmjs.org/, tarball: https://r2.cnpmjs.org/tmp/-/tmp-0.0.33.tgz}
