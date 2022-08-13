@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
-import { AtButton, AtInput } from 'taro-ui';
+import { AtButton, AtInput, AtToast } from 'taro-ui';
 import './index.scss';
 import { useState } from 'react';
 import Taro from '@tarojs/taro';
@@ -28,6 +28,13 @@ interface ResultType {
   realTotal: string;
   lessUnit: string;
 }
+
+const defaultSource: SourceType = {
+  unitPrice: '59.8',
+  count: '30',
+  needPrice: '150',
+  lessPrice: '30'
+};
 
 const getStorageSource = (): undefined | SourceType => {
   try {
@@ -79,6 +86,8 @@ const Index: React.FC<IndexProps> = () => {
 
   const [result, setResult] = useState<ResultType | undefined>(calcResult(getStorageSource()));
 
+  const [isError, setIsError] = useState<boolean>(false);
+
   // // 对应 onShow
   // useDidShow(() => {
   //   console.info('ready');
@@ -86,8 +95,18 @@ const Index: React.FC<IndexProps> = () => {
   //   console.info('currentDeviceInfo', currentDeviceInfo.theme);
   // });
   useEffect(() => {
-    Taro.setStorageSync('source', JSON.stringify(dataSource));
-    setResult(calcResult(dataSource));
+    try {
+      const result = calcResult(dataSource);
+      Taro.setStorageSync('source', JSON.stringify(dataSource));
+
+      setResult(result);
+    } catch (error) {
+      setIsError(true);
+      window.setTimeout(() => {
+        setIsError(false);
+      }, 1500);
+      setDataSource(defaultSource);
+    }
   }, [dataSource?.unitPrice, dataSource?.count, dataSource?.needPrice, dataSource?.lessPrice]);
 
   return (
@@ -95,7 +114,9 @@ const Index: React.FC<IndexProps> = () => {
       <View className="content">
         <View className="form">
           <View>
-            <View className="title">基本信息</View>
+            <View className="title" style={{ marginTop: 0 }}>
+              基本信息
+            </View>
             <AtInput
               name="unit_price"
               title="请输入单价"
@@ -117,27 +138,29 @@ const Index: React.FC<IndexProps> = () => {
               }}
             />
           </View>
-          <View className="title">折扣信息</View>
-          <AtInput
-            name="need_price"
-            title="每满"
-            type="digit"
-            placeholder="输入满减金额，例如150"
-            value={dataSource?.needPrice}
-            onChange={value => {
-              setDataSource(pre => ({ ...(pre as SourceType), needPrice: String(value) }));
-            }}
-          />
-          <AtInput
-            name="less_price"
-            title="减"
-            type="digit"
-            placeholder="输入折扣金额例如30"
-            value={dataSource?.lessPrice}
-            onChange={value => {
-              setDataSource(pre => ({ ...(pre as SourceType), lessPrice: String(value) }));
-            }}
-          />
+          <View>
+            <View className="title">折扣信息</View>
+            <AtInput
+              name="need_price"
+              title="每满"
+              type="digit"
+              placeholder="输入满减金额，例如150"
+              value={dataSource?.needPrice}
+              onChange={value => {
+                setDataSource(pre => ({ ...(pre as SourceType), needPrice: String(value) }));
+              }}
+            />
+            <AtInput
+              name="less_price"
+              title="减"
+              type="digit"
+              placeholder="输入折扣金额例如30"
+              value={dataSource?.lessPrice}
+              onChange={value => {
+                setDataSource(pre => ({ ...(pre as SourceType), lessPrice: String(value) }));
+              }}
+            />
+          </View>
         </View>
         <View className="title">计算结果</View>
         <View className="result">
@@ -166,17 +189,13 @@ const Index: React.FC<IndexProps> = () => {
           type="primary"
           className="btn"
           onClick={() => {
-            setDataSource({
-              unitPrice: '59.8',
-              count: '30',
-              needPrice: '150',
-              lessPrice: '30'
-            });
+            setDataSource(defaultSource);
           }}
         >
           重置为默认值
         </AtButton>
       </View>
+      <AtToast isOpened={isError} text="数据过大或错误，已自动重置"></AtToast>
     </View>
   );
 };
