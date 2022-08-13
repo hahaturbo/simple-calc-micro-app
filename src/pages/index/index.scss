@@ -1,48 +1,67 @@
+@import '~taro-ui/dist/style/components/button.scss';
+@import '~taro-ui/dist/style/components/loading.scss';
+@import '~taro-ui/dist/style/components/input.scss';
+@import '~taro-ui/dist/style/components/icon.scss';
+
+$font-size: 42px;
+
 .index {
-  font-size: large;
+  font-size: $font-size;
   box-sizing: border-box;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   padding: 20px;
-  .form {
-  }
-  .title {
-    position: relative;
-    font-size: large;
-    margin: 20px 0px 0px 20px;
-    padding-left: 20px;
-    &::before {
-      content: ' ';
-      top: 50%;
-      left: 0;
-      transform: translate(-50%, -50%);
-      position: absolute;
-      height: 1em;
-      width: 0.4em;
-      border-radius: 0.1em;
-      background-color: #ff5e5e;
-    }
-  }
-
-  .result {
-    border-radius: 20px;
-    margin-top: 40px;
-    background-color: rgba(235, 235, 235, 0.322);
-    .item {
-      padding: 20px;
-      display: flex;
-      .label {
-        font-weight: bold;
-        flex: 0 0 200px;
+  .content {
+    overflow: auto;
+    .form {
+      .at-input__title {
+        width: 5 * $font-size;
+        font-size: $font-size;
       }
-      .content {
-        word-break: break-all;
+      .at-input input {
+        font-size: $font-size;
+      }
+    }
+    .title {
+      position: relative;
+      margin: 40px 0px 0px 20px;
+      padding-left: 40px;
+      box-sizing: border-box;
+      &::before {
+        content: ' ';
+        top: 50%;
+        left: 0;
+        transform: translate(-50%, -50%);
+        position: absolute;
+        height: 1.5em;
+        width: 0.4em;
+        border-radius: 0.1em;
+        background-color: #ff5e5e;
+      }
+    }
+
+    .result {
+      border-radius: 20px;
+      margin-top: 40px;
+      background-color: rgba(235, 235, 235, 0.322);
+      .item {
+        padding: 20px;
+        display: flex;
+        .label {
+          flex: 0 0 5 * $font-size;
+        }
+        .content {
+          word-break: break-word;
+        }
       }
     }
   }
 
   .btn-container {
+    .at-button {
+      font-size: $font-size;
+    }
     width: 100%;
     display: flex;
     margin-top: auto;
