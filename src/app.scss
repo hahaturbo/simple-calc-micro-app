@@ -1,0 +1,9 @@
+@import './styles/normalize.css';
+@import './styles/color.scss';
+body {
+  color: $light-text-color;
+}
+
+body[current-theme='dark'] {
+  color: $dark-text-color;
+}

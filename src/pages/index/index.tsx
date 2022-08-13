@@ -1,37 +1,154 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
-import { AtButton, AtForm, AtInput, AtInputNumber } from 'taro-ui';
+import { AtButton, AtCard, AtForm, AtInput } from 'taro-ui';
 import './index.scss';
 import { useState } from 'react';
+import { useDidShow } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
 
 interface IndexProps {}
 
+interface SourceType {
+  unitPrice: string;
+  count: string;
+  needPrice: string;
+  lessPrice: string;
+}
+
+interface ResultType {
+  total: number;
+  totalLess: number;
+  realTotal: number;
+  lessUnit: number;
+}
+
+const getStorageSource = (): undefined | SourceType => {
+  try {
+    const res = Taro.getStorageSync<string>('source');
+    if (res) {
+      return JSON.parse(res);
+    }
+    return undefined;
+  } catch (error) {
+    return undefined;
+  }
+};
+
+const calcResult = (dataSource?: SourceType): ResultType | undefined => {
+  if (!dataSource) return;
+  const result: ResultType = {} as ResultType;
+  if (dataSource?.count && dataSource?.unitPrice) {
+    result.total = Number(dataSource?.count) * Number(dataSource?.unitPrice);
+  }
+  if (dataSource?.needPrice && dataSource?.lessPrice) {
+    result.totalLess = Math.floor(result.total / Number(dataSource?.needPrice)) * Number(dataSource?.lessPrice);
+    result.realTotal = result.total - result.totalLess;
+    result.lessUnit = result.realTotal / Number(dataSource?.count);
+  }
+  return result;
+};
+
 const Index: React.FC<IndexProps> = () => {
-  const [number, setNumber] = useState<string>();
+  const [dataSource, setDataSource] = useState<SourceType | undefined>(() => getStorageSource());
+
+  const [result, setResult] = useState<ResultType | undefined>(calcResult(getStorageSource()));
+
+  // 对应 onShow
+  useDidShow(() => {
+    console.info('ready');
+    const currentDeviceInfo = Taro.getSystemInfoSync();
+    console.info('currentDeviceInfo', currentDeviceInfo.theme);
+  });
+  useEffect(() => {
+    Taro.setStorageSync('source', JSON.stringify(dataSource));
+    setResult(calcResult(dataSource));
+  }, [dataSource?.unitPrice, dataSource?.count, dataSource?.needPrice, dataSource?.lessPrice]);
+
   return (
     <View className="index">
-      <AtForm>
+      <View className="form">
+        <View>
+          <View className="title">基本信息</View>
+          <AtInput
+            name="unit_price"
+            title="请输入单价"
+            type="number"
+            placeholder="输入单价，例如59.8"
+            value={dataSource?.unitPrice}
+            onChange={value => {
+              setDataSource(pre => ({ ...(pre as SourceType), unitPrice: String(value) }));
+            }}
+          />
+          <AtInput
+            name="dataSource?.count"
+            title="请输入数量"
+            type="number"
+            placeholder="输入数量，例如30"
+            value={dataSource?.count}
+            onChange={value => {
+              setDataSource(pre => ({ ...(pre as SourceType), count: String(value) }));
+            }}
+          />
+        </View>
+        <View className="title">折扣信息</View>
         <AtInput
-          name="number"
-          title="数字"
+          name="need_price"
+          title="每满"
           type="number"
-          placeholder="请输入数字"
-          value={number}
+          placeholder="输入满减金额，例如150"
+          value={dataSource?.needPrice}
           onChange={value => {
-            console.info(value, typeof value);
-            setNumber(String(value));
+            setDataSource(pre => ({ ...(pre as SourceType), needPrice: String(value) }));
           }}
         />
-        <AtButton type="primary">I need Taro UI</AtButton>
-        <AtButton type="primary" circle>
-          <Text>Taro UI 支持 Vue3 了吗？</Text>
-          支持
+        <AtInput
+          name="less_price"
+          title="减"
+          type="number"
+          placeholder="输入折扣金额例如30"
+          value={dataSource?.lessPrice}
+          onChange={value => {
+            setDataSource(pre => ({ ...(pre as SourceType), lessPrice: String(value) }));
+          }}
+        />
+      </View>
+      <View className="title">计算结果</View>
+      <View className="result">
+        <View className="item">
+          <Text className="label">原价：</Text>
+          <Text className="content">
+            {dataSource?.unitPrice} × {dataSource?.count} = {result?.total}
+          </Text>
+        </View>
+        <View className="item">
+          <Text className="label">共减去：</Text>
+          <Text className="content">{result?.totalLess}</Text>
+        </View>
+        <View className="item">
+          <Text className="label">最终价格：</Text>
+          <Text className="content">{result?.realTotal}</Text>
+        </View>
+        <View className="item">
+          <Text className="label">折算单价：</Text>
+          <Text className="content">{result?.lessUnit}</Text>
+        </View>
+      </View>
+      <View className="btn-container">
+        <AtButton
+          type="primary"
+          className="btn"
+          onClick={() => {
+            setDataSource({
+              unitPrice: '59.8',
+              count: '30',
+              needPrice: '150',
+              lessPrice: '30'
+            });
+          }}
+        >
+          重置为默认值
         </AtButton>
-        <Text>共建？</Text>
-        <AtButton type="secondary" circle={true}>
-          来
-        </AtButton>
-      </AtForm>
+      </View>
     </View>
   );
 };
