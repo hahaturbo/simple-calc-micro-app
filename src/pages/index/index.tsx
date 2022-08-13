@@ -39,11 +39,11 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
   const result: ResultType = {} as ResultType;
   if (dataSource?.count && dataSource?.unitPrice) {
     result.total = Number(dataSource?.count) * Number(dataSource?.unitPrice);
-  }
-  if (dataSource?.needPrice && dataSource?.lessPrice) {
-    result.totalLess = Math.floor(result.total / Number(dataSource?.needPrice)) * Number(dataSource?.lessPrice);
-    result.realTotal = result.total - result.totalLess;
-    result.lessUnit = result.realTotal / Number(dataSource?.count);
+    if (dataSource?.needPrice && dataSource?.lessPrice && result.total) {
+      result.totalLess = Math.floor(result.total / Number(dataSource?.needPrice)) * Number(dataSource?.lessPrice);
+      result.realTotal = result.total - result.totalLess;
+      result.lessUnit = result.realTotal / Number(dataSource?.count);
+    }
   }
   return result;
 };
@@ -72,7 +72,7 @@ const Index: React.FC<IndexProps> = () => {
           <AtInput
             name="unit_price"
             title="请输入单价"
-            type="number"
+            type="digit"
             placeholder="输入单价，例如59.8"
             value={dataSource?.unitPrice}
             onChange={value => {
@@ -94,7 +94,7 @@ const Index: React.FC<IndexProps> = () => {
         <AtInput
           name="need_price"
           title="每满"
-          type="number"
+          type="digit"
           placeholder="输入满减金额，例如150"
           value={dataSource?.needPrice}
           onChange={value => {
@@ -104,7 +104,7 @@ const Index: React.FC<IndexProps> = () => {
         <AtInput
           name="less_price"
           title="减"
-          type="number"
+          type="digit"
           placeholder="输入折扣金额例如30"
           value={dataSource?.lessPrice}
           onChange={value => {
