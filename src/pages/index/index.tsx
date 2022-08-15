@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
-import { AtButton, AtInput, AtToast } from 'taro-ui';
+import { AtButton, AtInput, AtInputNumber, AtTag, AtToast } from 'taro-ui';
 import './index.scss';
 import { useState } from 'react';
 import Taro from '@tarojs/taro';
-
-import { create, all } from 'mathjs';
+import { create, all, bignumber } from 'mathjs';
 
 // create a mathjs instance with configuration
 const math = create(all, {
@@ -16,8 +15,8 @@ const math = create(all, {
 interface IndexProps {}
 
 interface SourceType {
-  unitPrice: string;
-  count: string;
+  unitPrice: string[];
+  count: string[];
   needPrice: string;
   lessPrice: string;
 }
@@ -26,12 +25,13 @@ interface ResultType {
   total: string;
   totalLess: string;
   realTotal: string;
-  lessUnit: string;
+  lessUnit: string[];
+  avgUnit?: string;
 }
 
 const defaultSource: SourceType = {
-  unitPrice: '59.8',
-  count: '30',
+  unitPrice: ['59.8'],
+  count: ['30'],
   needPrice: '150',
   lessPrice: '30'
 };
@@ -40,7 +40,14 @@ const getStorageSource = (): undefined | SourceType => {
   try {
     const res = Taro.getStorageSync<string>('source');
     if (res) {
-      return JSON.parse(res);
+      const result = JSON.parse(res) as SourceType | undefined;
+      if (typeof result?.count === 'string') {
+        result.count = [result.count];
+      }
+      if (typeof result?.unitPrice === 'string') {
+        result.unitPrice = [result.unitPrice];
+      }
+      return result;
     }
     return undefined;
   } catch (error) {
@@ -51,9 +58,20 @@ const getStorageSource = (): undefined | SourceType => {
 const calcResult = (dataSource?: SourceType): ResultType | undefined => {
   if (!dataSource) return;
   const result: ResultType = {} as ResultType;
+  const originTotalList: Map<number, string> = new Map();
   if (dataSource?.count && dataSource?.unitPrice) {
     result.total = math.format(
-      math.multiply(math.bignumber(Number(dataSource.count)), math.bignumber(Number(dataSource.unitPrice))),
+      dataSource.unitPrice.reduce((pre, cur, index) => {
+        if (cur && dataSource.count[index]) {
+          const currentTotal = math.multiply(
+            math.bignumber(Number(cur)),
+            math.bignumber(Number(dataSource.count[index]))
+          );
+          originTotalList.set(index, math.format(currentTotal, { notation: 'fixed' }));
+          return math.add(math.bignumber(pre), currentTotal);
+        }
+        return pre;
+      }, 0),
       { notation: 'fixed' }
     );
     if (dataSource?.needPrice && dataSource?.lessPrice && result.total) {
@@ -69,21 +87,48 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
         math.chain(math.bignumber(result.total)).subtract(math.bignumber(result.totalLess)).done(),
         { notation: 'fixed' }
       );
-      result.lessUnit = math.format(
-        math
-          .chain(math.bignumber(result.realTotal))
-          .divide(math.bignumber(Number(dataSource.count)))
-          .done(),
-        { notation: 'fixed' }
-      );
+      result.lessUnit = dataSource.count.map((curCount, index) => {
+        if (originTotalList.get(index)) {
+          return math.format(
+            math.divide(
+              math.multiply(
+                math.divide(math.bignumber(Number(originTotalList.get(index))), math.bignumber(Number(result.total))),
+                math.bignumber(Number(result.realTotal))
+              ),
+              math.bignumber(Number(curCount))
+            ),
+            { notation: 'fixed' }
+          );
+        } else {
+          return '';
+        }
+      });
+      if (originTotalList.size && result.realTotal) {
+        let allHasCount = 0;
+        originTotalList.forEach((curTotal, index) => {
+          allHasCount += Number(dataSource.count[index]);
+        });
+        result.avgUnit = math.format(
+          math.divide(math.bignumber(Number(result.realTotal)), math.bignumber(allHasCount)),
+          { notation: 'fixed' }
+        );
+      }
     }
   }
   return result;
 };
 
 const Index: React.FC<IndexProps> = () => {
-  const [dataSource, setDataSource] = useState<SourceType | undefined>(() => getStorageSource());
-
+  const [dataSource, setDataSource] = useState<SourceType | undefined>(
+    () => getStorageSource() || ({ unitPrice: [] as string[], count: [] as string[] } as SourceType)
+  );
+  const [dataSourceLen, setDataSourceLen] = useState<number>(() => {
+    const source = getStorageSource();
+    if (source && Array.isArray(source?.count)) {
+      return source.count.length;
+    }
+    return 1;
+  });
   const [result, setResult] = useState<ResultType | undefined>(calcResult(getStorageSource()));
 
   const [isError, setIsError] = useState<boolean>(false);
@@ -98,7 +143,6 @@ const Index: React.FC<IndexProps> = () => {
     try {
       const result = calcResult(dataSource);
       Taro.setStorageSync('source', JSON.stringify(dataSource));
-
       setResult(result);
     } catch (error) {
       setIsError(true);
@@ -117,26 +161,75 @@ const Index: React.FC<IndexProps> = () => {
             <View className="title" style={{ marginTop: 0 }}>
               基本信息
             </View>
-            <AtInput
-              name="unit_price"
-              title="请输入单价"
-              type="digit"
-              placeholder="输入单价，例如59.8"
-              value={dataSource?.unitPrice}
-              onChange={value => {
-                setDataSource(pre => ({ ...(pre as SourceType), unitPrice: String(value) }));
-              }}
-            />
-            <AtInput
-              name="dataSource?.count"
-              title="请输入数量"
-              type="number"
-              placeholder="输入数量，例如30"
-              value={dataSource?.count}
-              onChange={value => {
-                setDataSource(pre => ({ ...(pre as SourceType), count: String(value) }));
-              }}
-            />
+            {Array.isArray(dataSource?.unitPrice) && Array.isArray(dataSource?.count)
+              ? new Array(dataSourceLen).fill(null).map((_, index) => {
+                  return (
+                    <View key={index} style={{ display: 'flex', alignItems: 'center' }}>
+                      {dataSourceLen > 1 && (
+                        <AtTag type="primary" active>
+                          {index + 1}
+                        </AtTag>
+                      )}
+                      <View style={{ display: 'flex', flexDirection: 'column' }}>
+                        <AtInput
+                          name={`unitPrice${index}`}
+                          title="请输入单价"
+                          type="digit"
+                          placeholder="输入单价，例如59.8"
+                          value={dataSource?.unitPrice[index]}
+                          onChange={value => {
+                            setDataSource(pre => ({
+                              ...(pre as SourceType),
+                              unitPrice: new Array(dataSourceLen)
+                                .fill(null)
+                                .map((_, inIndex) =>
+                                  inIndex === index ? String(value) : pre!.unitPrice[inIndex] || ''
+                                )
+                            }));
+                          }}
+                        />
+                        <AtInput
+                          name={`count${index}`}
+                          title="请输入数量"
+                          type="number"
+                          placeholder="输入数量，例如30"
+                          value={dataSource?.count[index]}
+                          onChange={value => {
+                            setDataSource(pre => ({
+                              ...(pre as SourceType),
+                              count: new Array(dataSourceLen)
+                                .fill(null)
+                                .map((_, inIndex) => (inIndex === index ? String(value) : pre!.count[inIndex] || ''))
+                            }));
+                          }}
+                        />
+                      </View>
+                    </View>
+                  );
+                })
+              : null}
+            <View style={{ display: 'flex', alignItems: 'center', margin: '8px 0' }}>
+              <Text style={{ marginRight: '16px', flexShrink: 0 }}>调整种类数量</Text>
+              <AtInputNumber
+                size="large"
+                style={{ flexGrow: 1 }}
+                type="number"
+                min={1}
+                max={20}
+                step={1}
+                value={dataSourceLen}
+                onChange={newLen => {
+                  if (newLen < dataSourceLen) {
+                    setDataSource(pre => ({
+                      ...pre!,
+                      count: pre!.count.slice(0, newLen),
+                      unitPrice: pre!.unitPrice.slice(0, newLen)
+                    }));
+                  }
+                  setDataSourceLen(newLen);
+                }}
+              />
+            </View>
           </View>
           <View>
             <View className="title">折扣信息</View>
@@ -167,7 +260,15 @@ const Index: React.FC<IndexProps> = () => {
           <View className="item">
             <Text className="label">原价：</Text>
             <Text className="content">
-              {dataSource?.unitPrice} × {dataSource?.count} = {result?.total}
+              {dataSource?.unitPrice.map((price, index) => {
+                return (
+                  <>
+                    {price || 0} × {dataSource.count[index] || 0}{' '}
+                    {index !== dataSource.unitPrice.length - 1 ? '+' : '='}
+                  </>
+                );
+              })}
+              {result?.total}
             </Text>
           </View>
           <View className="item">
@@ -180,8 +281,25 @@ const Index: React.FC<IndexProps> = () => {
           </View>
           <View className="item">
             <Text className="label">折算单价：</Text>
-            <Text className="content">{result?.lessUnit}</Text>
+            <View className="content">
+              {result?.lessUnit.map((item, index) => (
+                <View style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }} key={index}>
+                  {dataSourceLen > 1 && (
+                    <AtTag type="primary" active>
+                      {index + 1}
+                    </AtTag>
+                  )}
+                  {item}
+                </View>
+              ))}
+            </View>
           </View>
+          {dataSourceLen > 1 && result?.avgUnit && (
+            <View className="item">
+              <Text className="label">平均单价</Text>
+              <Text>{result.avgUnit}</Text>
+            </View>
+          )}
         </View>
       </View>
       <View className="btn-container">
@@ -190,6 +308,7 @@ const Index: React.FC<IndexProps> = () => {
           className="btn"
           onClick={() => {
             setDataSource(defaultSource);
+            setDataSourceLen(1);
           }}
         >
           重置为默认值

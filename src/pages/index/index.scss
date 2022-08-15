@@ -4,6 +4,8 @@
 @import '~taro-ui/dist/style/components/icon.scss';
 @import '~taro-ui/dist/style/components/toast.scss';
 @import '~taro-ui/dist/style/components/icon.scss';
+@import '~taro-ui/dist/style/components/input-number.scss';
+@import '~taro-ui/dist/style/components/tag.scss';
 $font-size: 42px;
 
 .index {
@@ -17,6 +19,9 @@ $font-size: 42px;
     max-height: 90vh;
     overflow: auto;
     .form {
+      .at-input {
+        margin-left: 8px;
+      }
       .at-input__title {
         width: 5 * $font-size;
         font-size: $font-size;
@@ -39,7 +44,7 @@ $font-size: 42px;
         height: 1.5em;
         width: 0.4em;
         border-radius: 0.1em;
-        background-color: #ff5e5e;
+        background-color: #78a4f4;
       }
     }
     .result {
@@ -56,6 +61,11 @@ $font-size: 42px;
           word-break: break-word;
         }
       }
+    }
+
+    .at-tag {
+      padding: 0 16px;
+      margin-right: 8px;
     }
   }
 
