@@ -63,10 +63,7 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
     result.total = math.format(
       dataSource.unitPrice.reduce((pre, cur, index) => {
         if (cur && dataSource.count[index]) {
-          const currentTotal = math.multiply(
-            math.bignumber(math.evaluate(cur)),
-            math.bignumber(math.evaluate(dataSource.count[index]))
-          );
+          const currentTotal = math.multiply(math.bignumber(cur), math.bignumber(dataSource.count[index]));
           originTotalList.set(index, math.format(currentTotal, { notation: 'fixed' }));
           return math.add(math.bignumber(pre), currentTotal);
         }
@@ -78,13 +75,9 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
       result.totalLess = math.format(
         math.multiply(
           math.floor(
-            math.evaluate(
-              math.format(
-                math.divide(math.bignumber(result.total), math.bignumber(math.evaluate(dataSource.needPrice)))
-              )
-            )
+            math.evaluate(math.format(math.divide(math.bignumber(result.total), math.bignumber(dataSource.needPrice))))
           ),
-          math.bignumber(math.evaluate(dataSource.lessPrice))
+          math.bignumber(dataSource.lessPrice)
         ),
         { notation: 'fixed' }
       );
@@ -98,13 +91,10 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
           return math.format(
             math.divide(
               math.multiply(
-                math.divide(
-                  math.bignumber(math.evaluate(originTotalList.get(index)!)),
-                  math.bignumber(math.evaluate(result.total))
-                ),
-                math.bignumber(math.evaluate(result.realTotal))
+                math.divide(math.bignumber(originTotalList.get(index)!), math.bignumber(result.total)),
+                math.bignumber(result.realTotal)
               ),
-              math.bignumber(math.evaluate(curCount))
+              math.bignumber(curCount)
             ),
             { notation: 'fixed' }
           );
@@ -113,14 +103,15 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
         }
       });
       if (originTotalList.size && result.realTotal) {
-        let allHasCount = 0;
+        let allHasCount = '0';
         originTotalList.forEach((curTotal, index) => {
-          allHasCount += math.evaluate(dataSource.count[index]);
+          allHasCount = math.format(math.add(math.bignumber(allHasCount), math.bignumber(dataSource.count[index])), {
+            notation: 'fixed'
+          });
         });
-        result.avgUnit = math.format(
-          math.divide(math.bignumber(math.evaluate(result.realTotal)), math.bignumber(allHasCount)),
-          { notation: 'fixed' }
-        );
+        result.avgUnit = math.format(math.divide(math.bignumber(result.realTotal), math.bignumber(allHasCount)), {
+          notation: 'fixed'
+        });
       }
     }
   }
