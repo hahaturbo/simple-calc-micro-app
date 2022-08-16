@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text } from '@tarojs/components';
 import { AtButton, AtInput, AtInputNumber, AtTag, AtToast } from 'taro-ui';
 import './index.scss';
 import { useState } from 'react';
 import Taro from '@tarojs/taro';
-import { create, all, bignumber } from 'mathjs';
+import { create, all } from 'mathjs';
 
 // create a mathjs instance with configuration
 const math = create(all, {
@@ -23,9 +23,9 @@ interface SourceType {
 
 interface ResultType {
   total: string;
-  totalLess: string;
-  realTotal: string;
-  lessUnit: string[];
+  totalLess?: string;
+  realTotal?: string;
+  lessUnit?: string[];
   avgUnit?: string;
 }
 
@@ -36,23 +36,23 @@ const defaultSource: SourceType = {
   lessPrice: '30'
 };
 
+const storageKey = 'source2';
+
 const getStorageSource = (): undefined | SourceType => {
   try {
-    const res = Taro.getStorageSync<string>('source');
+    const res = Taro.getStorageSync<string>(storageKey);
     if (res) {
       const result = JSON.parse(res) as SourceType | undefined;
-      if (typeof result?.count === 'string') {
-        result.count = [result.count];
-      }
-      if (typeof result?.unitPrice === 'string') {
-        result.unitPrice = [result.unitPrice];
-      }
       return result;
     }
     return undefined;
   } catch (error) {
     return undefined;
   }
+};
+
+export const afterUpdateVersion = () => {
+  Taro.removeStorage({ key: 'source' });
 };
 
 const calcResult = (dataSource?: SourceType): ResultType | undefined => {
@@ -64,8 +64,8 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
       dataSource.unitPrice.reduce((pre, cur, index) => {
         if (cur && dataSource.count[index]) {
           const currentTotal = math.multiply(
-            math.bignumber(Number(cur)),
-            math.bignumber(Number(dataSource.count[index]))
+            math.bignumber(math.evaluate(cur)),
+            math.bignumber(math.evaluate(dataSource.count[index]))
           );
           originTotalList.set(index, math.format(currentTotal, { notation: 'fixed' }));
           return math.add(math.bignumber(pre), currentTotal);
@@ -77,8 +77,14 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
     if (dataSource?.needPrice && dataSource?.lessPrice && result.total) {
       result.totalLess = math.format(
         math.multiply(
-          math.floor(Number(math.divide(math.bignumber(result.total), math.bignumber(Number(dataSource.needPrice))))),
-          math.bignumber(Number(dataSource.lessPrice))
+          math.floor(
+            math.evaluate(
+              math.format(
+                math.divide(math.bignumber(result.total), math.bignumber(math.evaluate(dataSource.needPrice)))
+              )
+            )
+          ),
+          math.bignumber(math.evaluate(dataSource.lessPrice))
         ),
         { notation: 'fixed' }
       );
@@ -88,14 +94,17 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
         { notation: 'fixed' }
       );
       result.lessUnit = dataSource.count.map((curCount, index) => {
-        if (originTotalList.get(index)) {
+        if (originTotalList.get(index) && result.realTotal) {
           return math.format(
             math.divide(
               math.multiply(
-                math.divide(math.bignumber(Number(originTotalList.get(index))), math.bignumber(Number(result.total))),
-                math.bignumber(Number(result.realTotal))
+                math.divide(
+                  math.bignumber(math.evaluate(originTotalList.get(index)!)),
+                  math.bignumber(math.evaluate(result.total))
+                ),
+                math.bignumber(math.evaluate(result.realTotal))
               ),
-              math.bignumber(Number(curCount))
+              math.bignumber(math.evaluate(curCount))
             ),
             { notation: 'fixed' }
           );
@@ -106,10 +115,10 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
       if (originTotalList.size && result.realTotal) {
         let allHasCount = 0;
         originTotalList.forEach((curTotal, index) => {
-          allHasCount += Number(dataSource.count[index]);
+          allHasCount += math.evaluate(dataSource.count[index]);
         });
         result.avgUnit = math.format(
-          math.divide(math.bignumber(Number(result.realTotal)), math.bignumber(allHasCount)),
+          math.divide(math.bignumber(math.evaluate(result.realTotal)), math.bignumber(allHasCount)),
           { notation: 'fixed' }
         );
       }
@@ -119,6 +128,7 @@ const calcResult = (dataSource?: SourceType): ResultType | undefined => {
 };
 
 const Index: React.FC<IndexProps> = () => {
+  const errorFlagRef = useRef<boolean>(false);
   const [dataSource, setDataSource] = useState<SourceType | undefined>(
     () => getStorageSource() || ({ unitPrice: [] as string[], count: [] as string[] } as SourceType)
   );
@@ -142,14 +152,18 @@ const Index: React.FC<IndexProps> = () => {
   useEffect(() => {
     try {
       const result = calcResult(dataSource);
-      Taro.setStorageSync('source', JSON.stringify(dataSource));
+      Taro.setStorageSync(storageKey, JSON.stringify(dataSource));
       setResult(result);
+      errorFlagRef.current = false;
     } catch (error) {
       setIsError(true);
       window.setTimeout(() => {
         setIsError(false);
       }, 1500);
-      setDataSource(defaultSource);
+      if (!errorFlagRef.current) {
+        errorFlagRef.current = true;
+        setDataSource(defaultSource);
+      }
     }
   }, [dataSource?.unitPrice, dataSource?.count, dataSource?.needPrice, dataSource?.lessPrice]);
 
@@ -260,7 +274,7 @@ const Index: React.FC<IndexProps> = () => {
           <View className="item">
             <Text className="label">原价：</Text>
             <Text className="content">
-              {dataSource?.unitPrice.map((price, index) => {
+              {dataSource?.unitPrice?.map((price, index) => {
                 return (
                   <>
                     {price || 0} × {dataSource.count[index] || 0}{' '}
@@ -282,7 +296,7 @@ const Index: React.FC<IndexProps> = () => {
           <View className="item">
             <Text className="label">折算单价：</Text>
             <View className="content">
-              {result?.lessUnit.map((item, index) => (
+              {result?.lessUnit?.map((item, index) => (
                 <View style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }} key={index}>
                   {dataSourceLen > 1 && (
                     <AtTag type="primary" active>
